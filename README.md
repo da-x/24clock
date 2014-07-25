@@ -10,6 +10,6 @@ This is a "Twenty-Four"-inspired screen saver for Linux that I have revamped fro
 
 Do:
 
-    sudo yum install mock && ./packaging/build-srpm -o . -m -
+    sudo yum install mock rpm-build && ./packaging/build-srpm -o . -m -
 
 This will generate the RPMs in the current directory.
