@@ -36,12 +36,23 @@ static Atom wmDeleteWindow;
 static Display *dpDisplay;
 static Window win;
 
-static void redraw_scene(void)
+static double time_of_day_float(void)
+{
+	struct timeval tv;
+	int ret;
+
+	ret = gettimeofday(&tv, NULL);
+	assert(ret == 0);
+
+	return ((double)tv.tv_sec) + ((double)tv.tv_usec/1000000);
+}
+
+static void redraw_scene(time_t time)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 
-	scene_display();
+	scene_display(time);
 
 	glXSwapBuffers(dpDisplay, win);
 }
@@ -128,11 +139,12 @@ static void main_loop(void)
 		do {
 			while (!XPending(dpDisplay))
 			{
-				time_t current_time = time(NULL);
+				double now = time_of_day_float();
+				time_t current_time = round(now);
 
 				if (current_time != last_time) {
+					redraw_scene(current_time);
 					last_time = current_time;
-					redraw_scene();
 				} else {
 					struct pollfd pfd = {
 						.events = POLLIN,

@@ -20,19 +20,6 @@ typedef struct GL3d_s {
 	GLdouble x, y, z;
 } GL3d;
 
-double time_of_day_float(void)
-{
-	struct timeval tv;
-	int ret;
-
-	ret = gettimeofday(&tv, NULL);
-	assert(ret == 0);
-
-	return ((double)tv.tv_sec) + ((double)tv.tv_usec/1000000);
-}
-
-static double start_time;
-
 typedef enum {
 	LED_SHARP_START=1,
 	LED_SHARP_END=2,
@@ -355,14 +342,11 @@ typedef struct time24 {
 	int minutes;
 } time24_t;
 
-static void decide_time(time24_t *t24)
+static void decode_time(time_t time, time24_t *t24)
 {
 	struct tm tm;
-	double now = time_of_day_float();
-	time_t t;
 
-	t = round(now);
-	tm = *localtime(&t);
+	tm = *localtime(&time);
 	t24->hours = tm.tm_hour % 24;
 	t24->minutes = tm.tm_min;
 	t24->seconds = tm.tm_sec;
@@ -398,7 +382,7 @@ static void draw_clock(time24_t *t24)
 	glMyPopMatrix();
 }
 
-void scene_display(void)
+void scene_display(time_t time)
 {
 	GLdouble matrix[4][4] = {};
 	time24_t t24;
@@ -413,7 +397,7 @@ void scene_display(void)
 	matrix[2][2] = 1;
 	matrix[3][3] = 1;
 
-	decide_time(&t24);
+	decode_time(time, &t24);
 
 	glMultMatrixd(&matrix[0][0]);
 
@@ -470,8 +454,6 @@ void scene_reshape(int w, int h)
 
 void scene_init(int w, int h)
 {
-	start_time = time_of_day_float();
-
 	glClearColor(0.4, 0.4, 0.4, 0.0);
 	glClearDepth(1.0);
 
