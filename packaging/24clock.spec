@@ -12,6 +12,7 @@ BuildRequires:  mesa-libGLU-devel
 BuildRequires:  libXaw-devel
 BuildRequires:  libXi-devel
 BuildRequires:  freeglut-devel
+BuildRequires:  libconfuse-devel
 
 %description
 

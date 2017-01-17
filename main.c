@@ -4,18 +4,22 @@
  * This code is licensed under the GNU General Public License
  */
 
+#include <assert.h>
+#include <math.h>
+#include <poll.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <poll.h>
-#include <assert.h>
+#include <sys/stat.h>
 #include <sys/time.h>
-#include <math.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include <GL/gl.h>
 #include <GL/glx.h>
 #include <GL/glu.h>
 #include <time.h>
+#include <confuse.h>
 
 #include "scene.h"
 
@@ -192,6 +196,36 @@ static void main_loop(void)
 int main(int argc, char **argv)
 {
 	XWindowAttributes winattr;
+	bool libgl_dri3_disable = false;
+
+	cfg_opt_t opts[] = {
+		CFG_SIMPLE_BOOL("libgl_dri3_disable", &libgl_dri3_disable),
+		CFG_END()
+	};
+	cfg_t *cfg;
+
+	char filename[0x200];
+	const char *home = getenv("HOME");
+	if (home) {
+		snprintf(filename,
+			 sizeof(filename), "%s/.local/share/24clock/24clock.conf", home);
+		struct stat st;
+
+		if (stat(filename, &st) == 0) {
+			cfg = cfg_init(opts, 0);
+			assert(cfg != NULL);
+			cfg_parse(cfg, filename);
+			cfg_free(cfg);
+		}
+	}
+
+	if (libgl_dri3_disable) {
+		if (getenv("LIBGL_DRI3_DISABLE") == NULL) {
+			putenv("LIBGL_DRI3_DISABLE=1");
+			execvp(argv[0], &argv[0]);
+			assert(0);
+		}
+	}
 
 	init_window(argc, argv);
 
